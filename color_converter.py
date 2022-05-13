@@ -1,3 +1,7 @@
+import sys
+import argparse
+
+
 def rgb_to_hex(red, green, blue):
 	return f"{red:x}{green:x}{blue:x}"
 
@@ -147,3 +151,19 @@ def hsv_to_rgb(h, s, v):
 	b = (b + m) * 255
 
 	return (r, g, b)
+
+
+def create_parser():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-ci", "--color_in", nargs="+")
+	parser.add_argument("-co", "--color_out", nargs="+")
+
+	return parser
+
+
+if __name__ == "__main__":
+	parser = create_parser()
+	namespace = parser.parse_args(sys.argv[1:])
+
+	color_in = namespace.color_in[0]
+	color_out = namespace.color_out[0]
