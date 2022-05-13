@@ -1,69 +1,149 @@
-import math
+def rgb_to_hex(red, green, blue):
+	return f"{red:x}{green:x}{blue:x}"
 
 
-class Color:
-	"""Класс цвета
-
-	Хранит цвет в следующих форматах:
-
-	hex / шестнадцатеричный
-	rgb / цвета из отрезка [0; 1]
-	cmyk
-	hsi
-	yiq
+def hex_to_rgb(hex_color):
 	"""
-	def __init__(self, first=0, second=0, third=0, color_model="rgb"):
-		self.__first = first
-		self.__second = second
-		self.__third = third
+	Переводит цвет из 16-ой формы в RGB.
 
-		self.__color_model = color_model
+	Принимает цвет в формате RRGGBB или RGB, где R - красный, G - зелёный, B - голубой.
+	"""
 
-	def get_first(self):
-		return self.__first
+	if len(hex_color) == 3:
+		red = int(hex_color[0], 16)
+		green = int(hex_color[1], 16)
+		blue = int(hex_color[2], 16)
+	else:
+		red = int(hex_color[0:2], 16)
+		green = int(hex_color[2:4], 16)
+		blue = int(hex_color[4:6], 16)
 
-	def get_second(self):
-		return self.__second
+	return (red, green, blue)
 
-	def get_third(self):
-		return self.__third
 
-	def to_cmyk(self):
-		cyan = 1 - self.red
-		magenta = 1 - self.green
-		yellow = 1 - self.blue
+def rgb_to_cmyk(red, green, blue):
+	red /= 255
+	green /= 255
+	blue /= 255
 
-		return Color(cyan, magenta, yellow, "cmyk")
+	black = 1 - max(red, green, blue)
 
-	def to_hsi(self):
-		theta = math.acos(1 / 2 * ((self.red - self.green)
-				+ (self.red - self.blue))
-				/ math.sqrt((self.red - self.green) ** 2
-				+ (self.red - self.blue) * (self.green - self.blue)))
+	cyan = (1 - red - black) / (1 - black)
+	magenta = (1 - green - black) / (1 - black)
+	yellow = (1 - blue - black) / (1 - black)
 
-		if self.blue <= self.green:
-			h = theta
-		else:
-			h = 360 - theta
+	return (cyan, magenta, yellow, black)
 
-		s = 1 - 3 / (self.red + self.green + self.blue) * min(self.red,
-			self.green, self.blue)
 
-		i = 1 / 3 * (self.red + self.green + self.blue)
+def cmyk_to_rgb(cyan, magenta, yellow, black):
+	red = 255 * (1 - cyan) * (1 - black)
+	green = 255 * (1 - magenta) * (1 - black)
+	blue = 255 * (1 - yellow) * (1 - black)
 
-		return Color(h, s, i, "hsi")
+	return (red, green, blue)
 
-	def to_yiq(self):
-		y = 0.299 * self.red + 0.587 * self.green + 0.114 * self.blue
-		i = 0.596 * self.red - 0.274 * self.green - 0.321 * self.blue
-		q = 0.211 * self.red - 0.526 * self.green + 0.311 * self.blue
 
-		return Color(y, i, q, "yiq")
+def rgb_to_hsl(red, green, blue):
+	red /= 255
+	green /= 255
+	blue /= 255
 
-	def __str__(self):
-		return "color model: {} / {:.2f} / {:.2f} / {:.2f}".format(
-			self.__color_model,
-			self.__first,
-			self.__second,
-			self.__third
-		)
+	max_color = max(red, green, blue)
+	min_color = min(red, green, blue)
+	delta = max_color - min_color
+
+	h = 0
+	if max_color == red:
+		h = 60 * ((green - blue) / delta % 6)
+	elif max_color == green:
+		h = 60 * ((blue - red) / delta + 2)
+	elif max_color == blue:
+		h = 60 * ((red - green) / delta + 4)
+
+	l = (max_color + min_color) / 2
+
+	s = 0
+	if delta != 0:
+		s = delta / (1 - abs(2 * l - 1))
+
+	return (h, s, l)
+
+
+def hsl_to_rgb(h, s, l):
+	c = (1 - abs(2 * l - 1)) * s
+
+	x = c * (1 - abs((h / 60) % 2 - 1))
+
+	m = l - c / 2
+
+	if h < 60:
+		r, g, b = c, x, 0
+	elif h < 120:
+		r, g, b = x, c, 0
+	elif h < 180:
+		r, g, b = 0, c, x
+	elif h < 240:
+		r, g, b = 0, x, c
+	elif h < 300:
+		r, g, b = x, 0, c
+	elif h < 360:
+		r, g, b = c, 0, x
+
+	r = (r + m) * 255
+	g = (g + m) * 255
+	b = (b + m) * 255
+
+	return (r, g, b)
+
+
+def rgb_to_hsv(red, green, blue):
+	red /= 255
+	green /= 255
+	blue /= 255
+
+	max_color = max(red, green, blue)
+	min_color = min(red, green, blue)
+	delta = max_color - min_color
+
+	h = 0
+	if max_color == red:
+		h = 60 * ((green - blue) / delta % 6)
+	elif max_color == green:
+		h = 60 * ((blue - red) / delta + 2)
+	elif max_color == blue:
+		h = 60 * ((red - green) / delta + 4)
+
+	s = 0
+	if max_color != 0:
+		s = delta / max_color
+
+	v = max_color
+
+	return (h, s, v)
+
+
+def hsv_to_rgb(h, s, v):
+	c = v * s
+
+	x = c * (1 - abs((h / 60) % 2 - 1))
+
+	m = v - c
+
+	if h < 60:
+		r, g, b = c, x, 0
+	elif h < 120:
+		r, g, b = x, c, 0
+	elif h < 180:
+		r, g, b = 0, c, x
+	elif h < 240:
+		r, g, b = 0, x, c
+	elif h < 300:
+		r, g, b = x, 0, c
+	elif h < 360:
+		r, g, b = c, 0, x
+
+	r = (r + m) * 255
+	g = (g + m) * 255
+	b = (b + m) * 255
+
+	return (r, g, b)
